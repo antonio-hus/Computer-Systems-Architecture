@@ -1,0 +1,73 @@
+     1                                  ; Laboratory 3 Exercises | Additions, subtractions | Subset Two | Exercise 22
+     2                                  
+     3                                  bits 32 
+     4                                  global start        
+     5                                  
+     6                                  extern exit              
+     7                                  import exit msvcrt.dll    
+     8                                  
+     9                                  ;a - byte, b - word, c - double word, d - qword - Signed representation
+    10                                  segment data use32 class=data
+    11 00000000 FE                          a db -2
+    12 00000001 FFFF                        b dw -1
+    13 00000003 FDFFFFFF                    c dd -3
+    14 00000007 FCFFFFFFFFFFFFFF            d dq -4
+    15                                  
+    16                                  segment code use32 class=code
+    17                                      start:
+    18                                          
+    19                                          ; c+b-(a-d+b)
+    20                                          
+    21                                          ; c = c+b = -3-1 = -4
+    22 00000000 8B0D[03000000]                  mov ECX, [c]
+    23 00000006 66A1[01000000]                  mov AX, [b]
+    24 0000000C 98                              cwde
+    25 0000000D 01C1                            add ECX, EAX
+    26 0000000F 890D[03000000]                  mov dword[c], ECX
+    27                                          
+    28                                          ; d = a-d = -2 - -4 = 2
+    29 00000015 A0[00000000]                    mov AL, [a]
+    30 0000001A 6698                            cbw
+    31 0000001C 98                              cwde
+    32 0000001D 99                              cdq ; EDX:EAX
+    33                                          
+    34 0000001E 8B1D[07000000]                  mov EBX, [d+0]
+    35 00000024 8B0D[0B000000]                  mov ECX, [d+4]
+    36                                          
+    37 0000002A F8                              clc
+    38 0000002B 29D8                            sub EAX, EBX
+    39 0000002D 19CA                            sbb EDX, ECX
+    40                                          
+    41 0000002F A3[07000000]                    mov dword[d+0], EAX
+    42 00000034 8915[0B000000]                  mov dword[d+4], EDX
+    43                                          
+    44                                          ; d = d+b = (a-d+b) = 2-1 = 1
+    45 0000003A 66A1[01000000]                  mov AX, [b]
+    46 00000040 98                              cwde
+    47 00000041 99                              cdq
+    48                                          
+    49 00000042 8B1D[07000000]                  mov EBX, dword[d+0]
+    50 00000048 8B0D[0B000000]                  mov ECX, dword[d+4]
+    51                                          
+    52 0000004E F8                              clc
+    53 0000004F 01D8                            add EAX, EBX
+    54 00000051 11CA                            adc EDX, ECX
+    55                                          
+    56 00000053 A3[07000000]                    mov dword[d+0], EAX
+    57 00000058 8915[0B000000]                  mov dword[d+4], EDX
+    58                                          
+    59                                          ; EDX:EAX = c-d = c+b-(a-d+b) = -4 - 1 = -5
+    60 0000005E A1[03000000]                    mov EAX, [c]
+    61 00000063 99                              cdq
+    62                                          
+    63 00000064 8B1D[07000000]                  mov EBX, dword[d+0]
+    64 0000006A 8B0D[0B000000]                  mov ECX, dword[d+4]
+    65                                          
+    66 00000070 F8                              clc
+    67 00000071 29D8                            sub EAX, EBX
+    68 00000073 19CA                            sbb EDX, ECX
+    69                                          
+    70                                          ; results in EDX:EAX
+    71                                          
+    72 00000075 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    73 00000077 FF15[00000000]                  call    [exit]       ; call exit to terminate the program

@@ -1,0 +1,46 @@
+     1                                  ; category: additions / subtractions | problem set: a,b,c,d byte | problem: 7
+     2                                  
+     3                                  bits 32
+     4                                  
+     5                                  global start
+     6                                  
+     7                                  extern exit
+     8                                  import exit msvcrt.dll
+     9                                  
+    10                                  segment data use32 class=data
+    11 00000000 05                          a db 5
+    12 00000001 02                          b db 2
+    13 00000002 0A                          c db 10
+    14 00000003 01                          d db 1
+    15                                  
+    16                                  segment code use32 class=code
+    17                                      start:
+    18                                          
+    19                                          ; c-(d+d+d)+(a-b)
+    20                                          ; we cant have to variable operands so we use the registry AL as an auxiliary for most of our operations
+    21                                  
+    22                                          ; d = d+d+d = 1+1+1 = 3
+    23 00000000 A0[03000000]                    mov AL, [d]
+    24 00000005 0205[03000000]                  add AL, [d]
+    25 0000000B 0205[03000000]                  add AL, [d]
+    26 00000011 A2[03000000]                    mov byte [d], AL
+    27                                          
+    28                                          ; c = c - (d+d+d) = 10(0A in 16) - 3 = 7
+    29 00000016 A0[02000000]                    mov AL, [c]
+    30 0000001B 2A05[03000000]                  sub AL, [d]
+    31 00000021 A2[02000000]                    mov byte [c], AL
+    32                                          
+    33                                          ; a = a-b = 5-2 = 3
+    34 00000026 A0[00000000]                    mov AL, [a]
+    35 0000002B 2A05[01000000]                  sub AL, [b]
+    36 00000031 A2[00000000]                    mov [a], AL
+    37                                          
+    38                                          ; a = c-(d+d+d)+(a-b) = 7 = 3 = 10 ( 0A in 16 )
+    39 00000036 A0[02000000]                    mov AL, [c]
+    40 0000003B 0205[00000000]                  add AL, [a]
+    41 00000041 A2[00000000]                    mov byte [a], AL
+    42                                          
+    43                                          ;result is in a ( and also AL )
+    44                                          
+    45 00000046 6A00                            push    dword 0
+    46 00000048 FF15[00000000]                  call    [exit]

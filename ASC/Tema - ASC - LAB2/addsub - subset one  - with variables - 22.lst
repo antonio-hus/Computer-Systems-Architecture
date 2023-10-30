@@ -1,0 +1,42 @@
+     1                                  ; category: additions / subtractions | problem set: a,b,c,d byte | problem: 22
+     2                                  
+     3                                  bits 32
+     4                                  
+     5                                  global start
+     6                                  
+     7                                  extern exit
+     8                                  import exit msvcrt.dll
+     9                                  
+    10                                  segment data use32 class=data
+    11 00000000 05                          a db 5
+    12 00000001 02                          b db 2
+    13 00000002 04                          c db 4
+    14 00000003 01                          d db 1
+    15                                  
+    16                                  segment code use32 class=code
+    17                                      start:
+    18                                          
+    19                                          ;(a+b+b)-(c+d)
+    20                                          ; we cant have to variable operands so we use the registry AL as an auxiliary for most of our operations
+    21                                          
+    22                                          ; a = a+b+b = 5+2+2 = 9
+    23 00000000 A0[00000000]                    mov AL, [a]
+    24 00000005 0205[01000000]                  add AL, [b]
+    25 0000000B 0205[01000000]                  add AL, [b]
+    26 00000011 A2[00000000]                    mov byte [a], AL
+    27                                          
+    28                                          ; c = c+d = 4+1 = 5
+    29 00000016 A0[02000000]                    mov AL, [c]
+    30 0000001B 0205[03000000]                  add AL, [d]
+    31 00000021 A2[02000000]                    mov byte [c], AL
+    32                                          
+    33                                          
+    34                                          ; a = a-c = (a+b+b)-(c+d) = 9-5 = 4
+    35 00000026 A0[00000000]                    mov AL, [a]
+    36 0000002B 2A05[02000000]                  sub AL, [c]
+    37 00000031 A2[00000000]                    mov byte[a], AL
+    38                                          
+    39                                          ;result is in a ( and also AL )
+    40                                          
+    41 00000036 6A00                            push    dword 0
+    42 00000038 FF15[00000000]                  call    [exit]

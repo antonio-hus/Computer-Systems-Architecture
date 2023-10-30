@@ -1,0 +1,21 @@
+     1                                  ; category: simple | problem: 22
+     2                                  
+     3                                  bits 32
+     4                                  
+     5                                  global start
+     6                                  
+     7                                  extern exit
+     8                                  import exit msvcrt.dll
+     9                                  
+    10                                  segment data use32 class=data
+    11                                      
+    12                                  segment code use32 class=code
+    13                                      start:
+    14                                          
+    15                                          ; 16 / 4
+    16 00000000 66B81000                        mov AX, 16
+    17 00000004 B304                            mov BL, 4 
+    18 00000006 F6F3                            div BL 
+    19                                          
+    20 00000008 6A00                            push    dword 0
+    21 0000000A FF15[00000000]                  call    [exit]

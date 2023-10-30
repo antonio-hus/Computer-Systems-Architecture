@@ -1,0 +1,39 @@
+     1                                  ; category: additions / subtractions | problem set: a,b,c,d byte | problem: 7
+     2                                  
+     3                                  bits 32
+     4                                  
+     5                                  global start
+     6                                  
+     7                                  extern exit
+     8                                  import exit msvcrt.dll
+     9                                  
+    10                                  segment data use32 class=data
+    11                                  
+    12                                  segment code use32 class=code
+    13                                      start:
+    14                                          
+    15                                          ; c-(d+d+d)+(a-b)
+    16 00000000 B005                            mov AL, 5 ; AL =a
+    17 00000002 B302                            mov BL, 2 ; BL = b
+    18 00000004 B10A                            mov CL, 10 ; CL = c
+    19 00000006 B201                            mov DL, 1 ; DL = d
+    20                                          
+    21                                          ;DH = d, DL = d+d+d ( we cant use DL=DL+DL twice because we would get d+d+d+d, so we need an auxiliary )
+    22 00000008 88D6                            mov DH, DL
+    23 0000000A 00F2                            add DL, DH
+    24 0000000C 00F2                            add DL, DH
+    25                                          
+    26                                          ;CL = c-(d+d+d)
+    27 0000000E 28D1                            sub CL, DL
+    28                                          
+    29                                          ;AL = a-b
+    30 00000010 28D8                            sub AL, BL
+    31                                          
+    32                                          ;CL = CL + AL = c-(d+d+d)+(a-b)
+    33 00000012 00C1                            add CL, AL
+    34                                          
+    35                                          ;move result in AL
+    36 00000014 88C8                            mov AL, CL
+    37                                          
+    38 00000016 6A00                            push    dword 0
+    39 00000018 FF15[00000000]                  call    [exit]

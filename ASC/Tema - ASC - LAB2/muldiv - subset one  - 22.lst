@@ -1,0 +1,47 @@
+     1                                  ; category: additions / subtractions | problem set: a,b,c - bytes, d - word | problem: 22
+     2                                  bits 32
+     3                                  
+     4                                  global start
+     5                                  
+     6                                  extern exit
+     7                                  import exit msvcrt.dll
+     8                                  
+     9                                  segment data use32 class=data
+    10 00000000 02                          a db 2
+    11 00000001 01                          b db 1
+    12 00000002 03                          c db 3
+    13 00000003 0400                        d dw 4
+    14                                  
+    15                                  segment code use32 class=code
+    16                                      start:
+    17                                          
+    18                                          ;[(10+d)-(a*a-2*b)]/c
+    19                                          
+    20                                          ; d = 10+d = 10+4 = 14 (E)
+    21 00000000 66B80A00                        mov AX, 10
+    22 00000004 660305[03000000]                add AX, [d]
+    23 0000000B 66A3[03000000]                  mov word[d], AX
+    24                                          
+    25                                          ; a = (a*a-2*b) = 2*2 - 2*1 = 4-2 = 2
+    26 00000011 A0[00000000]                    mov AL, [a]
+    27 00000016 F6E0                            mul AL
+    28 00000018 A2[00000000]                    mov byte[a], AL
+    29                                          
+    30 0000001D B002                            mov AL, 2
+    31 0000001F 8A1D[01000000]                  mov BL, [b]
+    32 00000025 F6E3                            mul BL
+    33                                          
+    34 00000027 2805[00000000]                  sub byte[a], AL
+    35                                          
+    36                                          ; AX = d-a = [(10+d)-(a*a-2*b)] = 14 - 2 = 12 (C)
+    37 0000002D 66A1[03000000]                  mov AX, [d]
+    38 00000033 668B1D[00000000]                mov BX, [a]
+    39 0000003A B700                            mov BH, 0
+    40 0000003C 6629D8                          sub AX, BX
+    41                                          
+    42                                          ; AX = AX / [c] = 12 / 3 = 4 remainder 0 ( quotient found in AX, remainder found in DX )
+    43 0000003F 8A0D[02000000]                  mov CL, [c]
+    44 00000045 F6F1                            div CL
+    45                                          
+    46 00000047 6A00                            push    dword 0
+    47 00000049 FF15[00000000]                  call    [exit]

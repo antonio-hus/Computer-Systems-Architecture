@@ -1,0 +1,27 @@
+     1                                  bits 32
+     2                                  
+     3                                  global start        
+     4                                  
+     5                                  extern exit               
+     6                                  import exit msvcrt.dll
+     7                                  
+     8                                  segment data use32 class=data
+     9 00000000 0A                          a db 10
+    10 00000001 3200                        b dw 50
+    11 00000003 FF                          c db -1
+    12                                  
+    13                                  segment code use32 class=code
+    14                                      start:
+    15 00000000 A0[00000000]                    mov AL, [a] ; AL = a = 10 = 0A
+    16 00000005 C605[03000000]14                mov byte [c], 20 ; c = 20
+    17 0000000C 88C3                            mov BL, AL ; BL = AL = 10 ( byte )
+    18 0000000E 66B9[0100]                      mov CX, b ; CX = b = 50 ( word )
+    19                                          
+    20 00000012 0205[03000000]                  add AL, [c] ; AL = AL + c = 10 + 20
+    21 00000018 8005[00000000]05                add byte [a], 5 ; a = a + 5 = 15
+    22 0000001F 6683E90A                        sub CX, 10 ; CX = CX - 10 = 50 - 10 = 40
+    23 00000023 66290D[01000000]                sub word [b], CX ; b = b - CX = 50 - 40 = 10
+    24                                      
+    25                                          ; exit(0)
+    26 0000002A 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    27 0000002C FF15[00000000]                  call    [exit]       ; call exit to terminate the program

@@ -1,0 +1,89 @@
+     1                                  ; Laboratory 3 Exercises | Multiplications, Divisions | Exercise 22
+     2                                  
+     3                                  bits 32 
+     4                                  global start        
+     5                                  
+     6                                  extern exit              
+     7                                  import exit msvcrt.dll    
+     8                                  
+     9                                  ;a,b,c-byte; e-doubleword; x-qword -- Signed -- for the Unsigned version just use mul and div
+    10                                  segment data use32 class=data
+    11 00000000 FF                          a db -1
+    12 00000001 FE                          b db -2
+    13 00000002 FD                          c db -3
+    14 00000003 FCFFFFFF                    e dd -4
+    15 00000007 FBFFFFFFFFFFFFFF            x dq -5
+    16                                      
+    17 0000000F <res 00000001>              tempb resb 1
+    18 00000010 <res 00000002>              tempw resw 1
+    19 00000012 <res 00000002>              tempw2 resw 1
+    20 00000014 <res 00000004>              tempd resd 1
+    21 00000018 <res 00000004>              tempd2 resd 1
+    22                                  
+    23                                  segment code use32 class=code
+    24                                      start:
+    25                                          
+    26                                          ; a/2+b*b-a*b*c+e+x
+    27                                          
+    28                                          ; tempb = a/2 = -1/2 = 0 rest -1 - AL = 0, AH = -1
+    29 00000000 A0[00000000]                    mov AL, [a]
+    30 00000005 6698                            cbw
+    31                                          
+    32 00000007 B302                            mov BL, 2
+    33 00000009 F6FB                            idiv BL
+    34                                          
+    35 0000000B A2[0F000000]                    mov byte[tempb], AL
+    36                                          
+    37                                          ; tempw = b*b = -2*-2 = 4
+    38 00000010 A0[01000000]                    mov AL, [b]
+    39 00000015 6698                            cbw
+    40 00000017 F6E8                            imul AL
+    41 00000019 66A3[10000000]                  mov word[tempw], AX
+    42                                          
+    43                                          ; EAX = a*b*c = -1*-2*-3 = -6
+    44 0000001F A0[00000000]                    mov AL, [a]
+    45 00000024 6698                            cbw
+    46                                          
+    47                                          ; a*b
+    48 00000026 8A1D[01000000]                  mov BL, [b]
+    49 0000002C F6EB                            imul BL ; AX = AL*BL
+    50 0000002E 66A3[12000000]                  mov word[tempw2], AX
+    51                                          
+    52                                          ; tempd*c
+    53 00000034 A0[02000000]                    mov AL, [c]
+    54 00000039 6698                            cbw
+    55 0000003B 98                              cwde
+    56 0000003C 668B1D[12000000]                mov BX, [tempw2]
+    57 00000043 66F7EB                          imul BX
+    58                                          
+    59 00000046 A3[14000000]                    mov dword[tempd], EAX
+    60                                          
+    61                                          ; EAX = tempb + tempw - tempd + [e] = a/2+b*b-a*b*c+e
+    62                                          
+    63 0000004B A0[0F000000]                    mov AL, [tempb]
+    64 00000050 6698                            cbw
+    65 00000052 98                              cwde
+    66 00000053 A3[18000000]                    mov dword[tempd2], EAX
+    67                                          
+    68 00000058 66A1[10000000]                  mov AX, [tempw]
+    69 0000005E 98                              cwde
+    70 0000005F 0305[18000000]                  add EAX, [tempd2]
+    71                                          
+    72 00000065 2B05[14000000]                  sub EAX, [tempd]
+    73                                          
+    74 0000006B 0305[03000000]                  add EAX, [e]
+    75                                          
+    76                                          ; EDX:EAX = EDX:EAX + x
+    77 00000071 99                              cdq
+    78                                          
+    79 00000072 8B1D[07000000]                  mov EBX, [x+0]
+    80 00000078 8B0D[0B000000]                  mov ECX, [x+4]
+    81                                          
+    82 0000007E F8                              clc
+    83 0000007F 01D8                            add EAX, EBX
+    84 00000081 11CA                            adc EDX, ECX
+    85                                          
+    86                                          ; results in EDX:EAX
+    87                                          
+    88 00000083 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    89 00000085 FF15[00000000]                  call    [exit]       ; call exit to terminate the program
