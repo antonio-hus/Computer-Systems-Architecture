@@ -8,10 +8,10 @@ import exit msvcrt.dll
 
 ;a - byte, b - word, c - double word, d - qword - Signed representation
 segment data use32 class=data
-    a db -2
-    b dw -1
-    c dd -3
-    d dq -4
+    a db 0xF4
+    b dw 0xB2A9
+    c dd 0x93EA624F
+    d dq 0x207621ACD
 
 segment code use32 class=code
     start:

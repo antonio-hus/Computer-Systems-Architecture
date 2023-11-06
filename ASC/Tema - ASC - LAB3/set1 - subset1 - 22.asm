@@ -8,10 +8,10 @@ import exit msvcrt.dll
 
 ;a - byte, b - word, c - double word, d - qword - Unsigned representation
 segment data use32 class=data
-    a db 2
-    b dw 1
-    c dd 3
-    d dq 12
+    a db 2Fh
+    b dw 4AE6h
+    c dd 682D789h
+    d dq 31C53294AEh
 
 segment code use32 class=code
     start:

@@ -8,11 +8,11 @@ import exit msvcrt.dll
 
 ;a,b-byte; c-word; e-doubleword; x-qword -- Signed
 segment data use32 class=data
-    a db 5
-    b db 4
-    c dw 3
-    e dd 2
-    x dq 1
+    a db 0x73
+    b db 0x61
+    c dw 0xABCD
+    e dd 0xABCDE
+    x dq 0x12973912
     
     tempb resb 1
     tempd resd 1
