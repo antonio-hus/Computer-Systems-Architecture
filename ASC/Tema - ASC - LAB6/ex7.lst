@@ -1,0 +1,64 @@
+     1                                  ; Laboratory 6 - Exercise 7
+     2                                  ; A string of doublewords is given
+     3                                  ; Obtain the list made out of the high bytes of the high words of each doubleword from the given list 
+     4                                  ; with the property that these bytes are multiple of 3
+     5                                  
+     6                                  bits 32 
+     7                                  global start        
+     8                                  
+     9                                  extern exit             
+    10                                  import exit msvcrt.dll
+    11                                  
+    12                                  segment data use32 class=data
+    13                                  
+    14                                      ; input string 
+    15 00000000 785634124D3C2B1A76-         s DD 0x12345678, 0x1A2B3C4D, 0xFE98DC76
+    15 00000009 DC98FE             
+    16                                      len equ ($-s)/4
+    17                                      
+    18                                      ; data used for computations
+    19 0000000C 03                          trei db 3
+    20                                      
+    21                                      ; output string
+    22 0000000D 00<rept>                    d times len db 0
+    23                                  
+    24                                  segment code use32 class=code
+    25                                      start:
+    26                                      
+    27                                          ; initializing operands for working with strings - 
+    28                                          ; esi - offset of source string, edi - constant for offset computations of destination string
+    29                                          ; ecx - times to repeat, DF = 0 - parsing direction
+    30 00000000 BE[00000000]                    mov esi, s
+    31 00000005 BF00000000                      mov edi, 0
+    32 0000000A B903000000                      mov ecx , len
+    33 0000000F FC                              cld
+    34                                          
+    35                                          ; parsing our source string
+    36 00000010 E31E                            jecxz Ending
+    37                                          Parcurgere:
+    38                                          
+    39                                              ; high doubleword in AX => high bytes in AH
+    40 00000012 66AD                                lodsw
+    41 00000014 66AD                                lodsw
+    42                                              
+    43                                              ; the part we are interested in is in AL now - and a copy in BL - used if we want to append it later
+    44 00000016 88E0                                mov AL, AH
+    45 00000018 88E3                                mov BL, AH
+    46 0000001A B400                                mov AH, 0
+    47                                              
+    48                                              ; if multiple of three => add in destination string, else continue
+    49 0000001C F635[0C000000]                      div byte[trei]
+    50 00000022 80FC00                              cmp AH, 0
+    51                                              
+    52 00000025 7507                                jnz Notmultiple
+    53                                              
+    54 00000027 889F[0D000000]                          mov [d+edi], BL
+    55 0000002D 47                                      inc edi
+    56                                              
+    57                                              Notmultiple:
+    58                                              
+    59 0000002E E2E2                            loop Parcurgere
+    60                                          Ending:
+    61                                          
+    62 00000030 6A00                            push    dword 0      
+    63 00000032 FF15[00000000]                  call    [exit]       

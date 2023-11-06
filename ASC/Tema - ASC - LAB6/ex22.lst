@@ -1,0 +1,90 @@
+     1                                  ; Laboratory 6 - Exercise 22
+     2                                  ; A string of bytes 'input' is given together with two additional strings of N bytes each, 'src' and 'dst'. 
+     3                                  ; Obtain a new string of bytes called 'output' from the 'input' string, 
+     4                                  ; by replacing all the bytes with the value src[i] with the new value dst[i], for i=1..N.
+     5                                  
+     6                                  bits 32 
+     7                                  global start        
+     8                                  
+     9                                  extern exit             
+    10                                  import exit msvcrt.dll
+    11                                  
+    12                                  segment data use32 class=data
+    13                                  
+    14                                      ; input strings
+    15 00000000 123A4529F7227040            input DB 0x12, 0x3A, 0x45, 0x29, 0xF7, 0x22, 0x70, 0x40
+    16                                      len equ $-input
+    17                                      
+    18 00000008 3A1422                      src db 0x3A, 0x14, 0x22
+    19 0000000B 010203                      dst db 0x01, 0x02, 0x03
+    20                                      len_N equ $-dst
+    21                                      
+    22                                      ; output string
+    23 0000000E 00<rept>                    output times len db 0
+    24                                  
+    25                                  segment code use32 class=code
+    26                                      start:
+    27                                      
+    28                                          ; prepare parsing direction flag
+    29 00000000 FC                              cld
+    30                                          
+    31                                          ; copy in output from input
+    32 00000001 B908000000                      mov ecx, len
+    33 00000006 BE00000000                      mov esi, 0
+    34 0000000B E30F                            jecxz FinishCopy
+    35                                          Again:
+    36                                          
+    37 0000000D 8A9E[00000000]                      mov BL, [input+esi]
+    38 00000013 889E[0E000000]                      mov [output+esi], BL
+    39 00000019 46                                  inc esi
+    40                                          
+    41 0000001A E2F1                            loop Again
+    42                                          FinishCopy:
+    43                                          
+    44                                          ; prepare index for computations
+    45 0000001C BE00000000                      mov esi, 0
+    46                                          
+    47                                          ; prepare loop for parsing our input / output strings - dont run if len of strings is 0
+    48 00000021 B908000000                      mov ecx , len
+    49 00000026 E332                            jecxz Ending
+    50                                          Parcurgere:
+    51                                          
+    52                                              ; save the value of ECX for maintaining the main loop in EDX
+    53 00000028 89CA                                mov EDX, ECX
+    54                                          
+    55                                              ; find the set of bytes in 'src'
+    56 0000002A 8A86[00000000]                      mov AL, [input+esi]
+    57 00000030 BF00000000                          mov edi, 0
+    58                                              
+    59 00000035 B903000000                          mov ECX, len_N
+    60 0000003A E319                                jecxz FinishSearch
+    61                                              FindinSrc:
+    62                                                  
+    63                                                  ; Compare the bytes from my string with the src[i] where i takes 1,2...N
+    64                                                  ; If found replace and jump to the end, else continue
+    65 0000003C 3A87[08000000]                          cmp AL, [src+edi]
+    66 00000042 750E                                    jne Continue
+    67                                                  
+    68 00000044 8A9F[0B000000]                              mov BL, [dst+edi]
+    69 0000004A 889E[0E000000]                              mov [output+esi], BL
+    70 00000050 EB03                                        jmp FinishSearch
+    71                                                  
+    72                                                  Continue:
+    73                                                  
+    74                                                  ; next value from src[i]
+    75 00000052 47                                      inc edi
+    76                                                  
+    77 00000053 E2E7                                loop FindinSrc
+    78                                              FinishSearch:
+    79                                              
+    80                                              ; return the value of ECX from EDX
+    81 00000055 89D1                                mov ECX, EDX
+    82                                              
+    83                                              ; next set of bytes from input / output string
+    84 00000057 46                                  inc esi
+    85                                          
+    86 00000058 E2CE                            loop Parcurgere
+    87                                          Ending:
+    88                                          
+    89 0000005A 6A00                            push    dword 0      
+    90 0000005C FF15[00000000]                  call    [exit]       
