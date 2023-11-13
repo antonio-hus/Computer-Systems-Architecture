@@ -1,0 +1,51 @@
+     1                                  ; Laboratory 8 - Function Calls - Exercise 22
+     2                                  
+     3                                  ; Two numbers a and b are given. 
+     4                                  ; Compute the expression value: (a+b)*k, where k is a constant value defined in data segment. 
+     5                                  ; Display the expression value (in base 10).
+     6                                  
+     7                                  bits 32 
+     8                                  global start        
+     9                                  
+    10                                  extern exit, printf, scanf               
+    11                                  import exit msvcrt.dll
+    12                                  import printf msvcrt.dll
+    13                                  import scanf msvcrt.dll
+    14                                  
+    15                                  segment data use32 class=data
+    16 00000000 00000000                    a dd 0
+    17 00000004 00000000                    b dd 0
+    18 00000008 05000000                    k dd 5
+    19                                      
+    20 0000000C 2564000000000000            format dd "%d", 0
+    21 00000014 2564256400000000            print_format dd "%d%d", 0
+    22                                      
+    23                                  segment code use32 class=code
+    24                                      start:
+    25                                      
+    26                                          ; Read 'a' and 'b'
+    27 00000000 68[00000000]                    push dword a
+    28 00000005 68[0C000000]                    push dword format
+    29 0000000A FF15[00000000]                  call [scanf]
+    30 00000010 83C408                          add esp, 4*2
+    31                                          
+    32 00000013 68[04000000]                    push dword b
+    33 00000018 68[0C000000]                    push dword format
+    34 0000001D FF15[00000000]                  call [scanf]
+    35 00000023 83C408                          add esp, 4*2
+    36                                          
+    37                                          ; Compute (a+b)*k - Result in EDX:EAX
+    38                                          
+    39 00000026 A1[00000000]                    mov EAX, [a]
+    40 0000002B 0305[04000000]                  add EAX, [b]
+    41 00000031 F725[08000000]                  mul dword[k]
+    42                                          
+    43                                          ; Display result- EDX:EAX - push in reverse order
+    44 00000037 50                              push EAX
+    45 00000038 52                              push EDX
+    46 00000039 68[14000000]                    push dword print_format
+    47 0000003E FF15[00000000]                  call [printf]
+    48 00000044 83C408                          add esp, 4*2
+    49                                          
+    50 00000047 6A00                            push    dword 0      
+    51 00000049 FF15[00000000]                  call    [exit]       

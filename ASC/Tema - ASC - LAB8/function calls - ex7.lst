@@ -1,0 +1,43 @@
+     1                                  ; Laboratory 8 - Function Calls - Exercise 7
+     2                                  
+     3                                  ; Two natural numbers a and b (a: dword, b: dword, defined in the data segment) are given. 
+     4                                  ; Calculate a/b and display the remainder in the following format: "<a> mod <b> = <remainder>". 
+     5                                  ; Example: for a = 23, b = 5 it will display: "23 mod 5 = 3".
+     6                                  ; The values will be displayed in decimal format (base 10) with sign.
+     7                                  
+     8                                  bits 32 
+     9                                  global start        
+    10                                  
+    11                                  extern exit, printf               
+    12                                  import exit msvcrt.dll
+    13                                  import printf msvcrt.dll
+    14                                  
+    15                                  segment data use32 class=data
+    16 00000000 17000000                    a dd 23
+    17 00000004 05000000                    b dd 5
+    18                                      
+    19 00000008 2564206D6F64202564-         message dw "%d mod %d = %d", 0 ; %d - decimal
+    19 00000011 203D2025640000     
+    20                                      ; printf ("%d mod %d = %d", a, b, remainder)
+    21                                      
+    22                                  segment code use32 class=code
+    23                                      start:
+    24                                      
+    25                                          ; EDX:EAX / EBX => EDX - remainder
+    26 00000000 A1[00000000]                    mov EAX, [a]
+    27 00000005 99                              cdq
+    28                                          
+    29 00000006 8B1D[04000000]                  mov EBX, [b]
+    30                                          
+    31 0000000C F7FB                            idiv EBX
+    32                                          
+    33                                          ; Push in order a, b, remainder
+    34 0000000E 52                              push EDX
+    35 0000000F FF35[04000000]                  push dword [b]
+    36 00000015 FF35[00000000]                  push dword [a]
+    37 0000001B 68[08000000]                    push dword message
+    38 00000020 FF15[00000000]                  call [printf]
+    39 00000026 83C410                          add esp, 4 * 4
+    40                                          
+    41 00000029 6A00                            push    dword 0      
+    42 0000002B FF15[00000000]                  call    [exit]       
