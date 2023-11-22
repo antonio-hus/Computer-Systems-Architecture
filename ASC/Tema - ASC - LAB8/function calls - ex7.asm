@@ -16,7 +16,7 @@ segment data use32 class=data
     a dd 23
     b dd 5
     
-    message dw "%d mod %d = %d", 0 ; %d - decimal
+    message dd "%d mod %d = %d", 0 ; %d - decimal
     ; printf ("%d mod %d = %d", a, b, remainder)
     
 segment code use32 class=code
@@ -31,12 +31,14 @@ segment code use32 class=code
         idiv EBX
         
         ; Push in reverse order a, b, remainder
+        ; printf ("%d mod %d = %d" | format, a, b, remainder)
+        
         push EDX ; remainder
         push dword [b]
         push dword [a]
         push dword message
         call [printf]
-        add esp, 4 * 4
+        add esp, 4 * 4 ; clean the stack
         
         push    dword 0      
         call    [exit]       

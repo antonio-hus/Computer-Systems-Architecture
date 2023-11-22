@@ -18,7 +18,7 @@ segment data use32 class=data
     k dd 5
     
     format dd "%d", 0
-    print_format dd "%d%d", 0
+    print_format db "%lld", 0
     
 segment code use32 class=code
     start:
@@ -38,14 +38,15 @@ segment code use32 class=code
         
         mov EAX, [a]
         add EAX, [b]
-        mul dword[k]
+        imul dword[k]
         
-        ; Display result- EDX:EAX - push in reverse order
-        push EAX
+        ; Display result- EDX:EAX - in order when using %lld - EDX goes in high part of the print, EAX in the low part - because of little endian
+        
         push EDX
+        push EAX
         push dword print_format
         call [printf]
-        add esp, 4*2
+        add esp, 4*3
         
         push    dword 0      
         call    [exit]       

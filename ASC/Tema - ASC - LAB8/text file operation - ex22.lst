@@ -1,0 +1,97 @@
+     1                                  ; Laboratory 8 - Text File Operation - Exercise 7
+     2                                  
+     3                                  ; A file name and a decimal number (on 16 bits) are given (the decimal number is in the unsigned interpretation). 
+     4                                  ; Create a file with the given name and write each digit composing the number on a different line to file.
+     5                                  
+     6                                  bits 32 
+     7                                  global start        
+     8                                  
+     9                                  extern exit, printf, fopen, fclose
+    10                                  
+    11                                  import exit msvcrt.dll
+    12                                  
+    13                                  import printf msvcrt.dll
+    14                                  
+    15                                  import fopen msvcrt.dll
+    16                                  import fclose msvcrt.dll
+    17                                  
+    18                                  segment data use32 class=data
+    19                                  
+    20 00000000 637265617465646669-         file_name db "createdfile.txt", 0
+    20 00000009 6C652E74787400     
+    21 00000010 FFFFFFFF                    file_descriptor dd -1   
+    22 00000014 7700                        access_mode db "w", 0
+    23                                      
+    24                                      ten equ 10
+    25 00000016 CDAB                        given_number dw 43981 ; Decimal for ABCD - fits on 16 bits
+    26                                      
+    27 00000018 25640000                    format dw "%d", 0
+    28                                      
+    29                                  segment code use32 class=code
+    30                                      start:
+    31                                      
+    32                                          ; Creating a file using fopen()
+    33                                          ; EAX = fopen(file_name, access_mode) - EAX = file descriptor
+    34 00000000 68[14000000]                    push dword access_mode
+    35 00000005 68[00000000]                    push dword file_name
+    36 0000000A FF15[00000000]                  call [fopen]
+    37 00000010 83C408                          add esp, 4*2
+    38                                          
+    39                                          ; Check if the file was created successfully - EAX != 0
+    40 00000013 83F800                          cmp EAX, 0
+    41 00000016 7447                            je final
+    42                                          
+    43                                              ; Saving the file descriptor to free EAX for later computations
+    44 00000018 A3[10000000]                        mov dword[file_descriptor], EAX
+    45                                          
+    46                                              ; Writing in the file
+    47                                              
+    48                                              ; Pseudocode for the code section below
+    49                                              ; if given_number > 0
+    50                                              ; do 
+    51                                              ;   digit = given_number % 10
+    52                                              ;   given_number = given_number / 10
+    53                                              ;   print(digit)
+    54                                              ; until given_number == 0
+    55                                              
+    56                                              ; skip if given_number is 0
+    57 0000001D 66A1[16000000]                      mov AX, word[given_number]
+    58 00000023 6683F800                            cmp AX, 0
+    59 00000027 7427                                je cleanup
+    60                                          
+    61                                              get_digits_loop:
+    62                                                  
+    63                                                  ; quotient in AX, remainder in DX
+    64                                                  ; free DX for the operation
+    65 00000029 66BA0000                                mov DX, 0
+    66 0000002D 66BB0A00                                mov BX, ten
+    67 00000031 66F7F3                                  div BX
+    68                                                  
+    69 00000034 60                                      PUSHAD
+    70                                                  
+    71                                                  ; Printing the remainder DX
+    72                                                  ; printf(format, number)
+    73 00000035 6652                                    push word DX
+    74 00000037 66FF35[18000000]                        push word [format]
+    75 0000003E FF15[00000000]                          call [printf]
+    76 00000044 83C404                                  add esp, 2*2
+    77                                                  
+    78 00000047 61                                      POPAD
+    79                                                  
+    80                                                  ; Exiting the loop when the quotient becomes 0
+    81 00000048 6683F800                                cmp AX, 0
+    82 0000004C 7402                                    je cleanup
+    83                                                  
+    84 0000004E EBD9                                jmp get_digits_loop
+    85                                                  
+    86                                              ; Closing the file
+    87                                              ; fclose(file_descriptor)
+    88                                              cleanup:
+    89                                              
+    90 00000050 FF35[10000000]                      push dword[file_descriptor]
+    91 00000056 FF15[00000000]                      call [fclose]
+    92 0000005C 83C404                              add esp, 4
+    93                                          
+    94                                          final:
+    95 0000005F 6A00                            push    dword 0      
+    96 00000061 FF15[00000000]                  call    [exit]       

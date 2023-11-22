@@ -1,0 +1,120 @@
+     1                                  ; Laboratory 8 - Text File Operation - Exercise 7
+     2                                  
+     3                                  ; A text file is given. Read the content of the file, determine: 
+     4                                  ; - the lowercase letter with the highest frequency 
+     5                                  ; and display the letter along with its frequency on the screen. 
+     6                                  ; The name of text file is defined in the data segment.
+     7                                  
+     8                                  bits 32 
+     9                                  global start        
+    10                                  
+    11                                  extern exit, printf, fopen, fread, fclose
+    12                                  
+    13                                  import exit msvcrt.dll
+    14                                  import printf msvcrt.dll
+    15                                  
+    16                                  import fopen msvcrt.dll
+    17                                  import fread msvcrt.dll
+    18                                  import fclose msvcrt.dll
+    19                                  
+    20                                  segment data use32 class=data
+    21                                  
+    22 00000000 66696C65372E747874-         file_name db "file7.txt", 0
+    22 00000009 00                 
+    23 0000000A FFFFFFFF                    file_descriptor dd -1
+    24                                      
+    25 0000000E 7200                        access_mode db "r", 0
+    26 00000010 <res 00000001>              character resb 1
+    27                                      
+    28 00000011 00<rept>                    character_freq times 26 db 0
+    29 0000002B 00                          max_frequency db 0
+    30 0000002C 00                          max_frequency_character db 0
+    31                                      
+    32 0000002D 25632C20256400              print_format db "%c, %d",0
+    33                                      
+    34                                  segment code use32 class=code
+    35                                      start:
+    36                                      
+    37                                          ; Opening the text file: "file7.txt"
+    38                                          ; EAX = fopen(file_name, access_mode) - 0 in cases of error
+    39 00000000 68[0E000000]                    push dword access_mode
+    40 00000005 68[00000000]                    push dword file_name
+    41 0000000A FF15[00000000]                  call [fopen]
+    42 00000010 83C408                          add esp, 4*2
+    43                                          
+    44                                          ; If file was not opened correctly, terminate the program
+    45 00000013 83F800                          cmp EAX, 0
+    46 00000016 0F8482000000                    je final
+    47                                          
+    48                                              ; Save file descriptor from EAX to a location memory
+    49 0000001C A3[0A000000]                        mov dword[file_descriptor], EAX
+    50                                              
+    51                                              ; Pseudocode Equivalent of the next code section
+    52                                              ; repeat
+    53                                              ;   has_read = fread(character, 1, 1, file_descriptor)
+    54                                              ;   if has_read > 0
+    55                                              ;       computations with this character
+    56                                              ; while has_read != 0
+    57                                              
+    58                                              reading_file:
+    59                                              
+    60                                                  ; Reading character by character
+    61 00000021 FF35[0A000000]                          push dword[file_descriptor]
+    62 00000027 6A01                                    push dword 1
+    63 00000029 6A01                                    push dword 1
+    64 0000002B 68[10000000]                            push dword character
+    65 00000030 FF15[00000000]                          call [fread]
+    66 00000036 83C410                                  add esp, 4*4
+    67                                                  
+    68                                                  ; EAX = number of characters read ( 1 or 0 in our case )
+    69                                                  ; If it has not read => Cleanup and terminate
+    70 00000039 83F800                                  cmp EAX, 0
+    71 0000003C 7416                                    je cleanup
+    72                                                  
+    73                                                  ; Processing our string from the file character by character
+    74                                                  ; Increasing the frequency of the character found
+    75 0000003E B800000000                              mov EAX, 0
+    76 00000043 A0[10000000]                            mov AL, byte[character]
+    77 00000048 2C61                                    sub AL, 'a'
+    78 0000004A 89C6                                    mov esi, EAX
+    79 0000004C FE86[11000000]                          inc byte[character_freq + esi]
+    80                                              
+    81                                                  ; Jumping back to read until the end of the file
+    82 00000052 EBCD                                jmp reading_file
+    83                                          
+    84                                          ; Closing the file as we do not need it anymore
+    85                                          cleanup:
+    86                                              ; fclose(file_descriptor)
+    87 00000054 FF35[0A000000]                      push dword[file_descriptor]
+    88 0000005A FF15[00000000]                      call [fclose]
+    89 00000060 83C404                              add esp, 4
+    90                                              
+    91                                          ; Pseudocode Equivalent of the code section below
+    92                                          ; for i = 26, 0, -1
+    93                                          ;   if(freq[i] > max_freq)
+    94                                          ;       max_freq = freq[i]
+    95                                          ;       max_freq_char = char(i)
+    96                                          
+    97                                          ; Finding the character with the maximum frequency
+    98 00000063 B91A000000                      mov ECX, 26 ; CL = 26, rest of the register is 0
+    99                                          find_max:
+   100                                          
+   101 00000068 8A81[11000000]                      mov AL, [character_freq + ecx]
+   102 0000006E 3A05[2B000000]                      cmp AL, [max_frequency]
+   103 00000074 7E0B                                jng continue
+   104 00000076 A2[2B000000]                            mov byte[max_frequency], AL
+   105 0000007B 880D[2C000000]                          mov byte[max_frequency_character], CL
+   106                                              continue:
+   107 00000081 E2E5                            loop find_max
+   108                                          
+   109                                          ; Printing the max frequency character together with it's apperances
+   110                                          ; printf(format, max_freq_char, max_freq)
+   111 00000083 FF35[2B000000]                  push dword[max_frequency]
+   112 00000089 FF35[2C000000]                  push dword[max_frequency_character]
+   113 0000008F FF35[2D000000]                  push dword[print_format]
+   114 00000095 FF15[00000000]                  call [printf]
+   115 0000009B 83C40C                          add esp, 4*3
+   116                                          
+   117                                          final:
+   118 0000009E 6A00                            push    dword 0      
+   119 000000A0 FF15[00000000]                  call    [exit]       

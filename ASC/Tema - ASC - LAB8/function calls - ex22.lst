@@ -18,7 +18,7 @@
     18 00000008 05000000                    k dd 5
     19                                      
     20 0000000C 2564000000000000            format dd "%d", 0
-    21 00000014 2564256400000000            print_format dd "%d%d", 0
+    21 00000014 256C6C6400                  print_format db "%lld", 0
     22                                      
     23                                  segment code use32 class=code
     24                                      start:
@@ -38,14 +38,15 @@
     38                                          
     39 00000026 A1[00000000]                    mov EAX, [a]
     40 0000002B 0305[04000000]                  add EAX, [b]
-    41 00000031 F725[08000000]                  mul dword[k]
+    41 00000031 F72D[08000000]                  imul dword[k]
     42                                          
-    43                                          ; Display result- EDX:EAX - push in reverse order
-    44 00000037 50                              push EAX
-    45 00000038 52                              push EDX
-    46 00000039 68[14000000]                    push dword print_format
-    47 0000003E FF15[00000000]                  call [printf]
-    48 00000044 83C408                          add esp, 4*2
-    49                                          
-    50 00000047 6A00                            push    dword 0      
-    51 00000049 FF15[00000000]                  call    [exit]       
+    43                                          ; Display result- EDX:EAX - in order when using %lld - EDX goes in high part of the print, EAX in the low part - because of little endian
+    44                                          
+    45 00000037 52                              push EDX
+    46 00000038 50                              push EAX
+    47 00000039 68[14000000]                    push dword print_format
+    48 0000003E FF15[00000000]                  call [printf]
+    49 00000044 83C40C                          add esp, 4*3
+    50                                          
+    51 00000047 6A00                            push    dword 0      
+    52 00000049 FF15[00000000]                  call    [exit]       
