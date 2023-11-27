@@ -6,12 +6,9 @@
 bits 32 
 global start        
 
-extern exit, printf, fopen, fclose
-
+extern exit, fprintf, fopen, fclose
 import exit msvcrt.dll
-
-import printf msvcrt.dll
-
+import fprintf msvcrt.dll
 import fopen msvcrt.dll
 import fclose msvcrt.dll
 
@@ -22,9 +19,9 @@ segment data use32 class=data
     access_mode db "w", 0
     
     ten equ 10
-    given_number dw 43981 ; Decimal for ABCD - fits on 16 bits
+    given_number dw 0x3C5B ; Decimal for 15.451 - fits on 16 bits
     
-    format dw "%d", 0
+    format dw `%d \n`, 0 ; using backticks ` to allow the assembler to view \n as eof - NASM Documentation
     
 segment code use32 class=code
     start:
@@ -50,7 +47,7 @@ segment code use32 class=code
             ; do 
             ;   digit = given_number % 10
             ;   given_number = given_number / 10
-            ;   print(digit)
+            ;   write(digit)
             ; until given_number == 0
             
             ; skip if given_number is 0
@@ -68,12 +65,13 @@ segment code use32 class=code
                 
                 PUSHAD
                 
-                ; Printing the remainder DX
-                ; printf(format, number)
-                push word DX
-                push word [format]
-                call [printf]
-                add esp, 2*2
+                ; Printing the remainder DX ( exteneded to EDX )
+                ; printf(file descriptor, format, number)
+                push dword EDX
+                push dword format
+                push dword [file_descriptor]
+                call [fprintf] 
+                add esp, 4*3
                 
                 POPAD
                 

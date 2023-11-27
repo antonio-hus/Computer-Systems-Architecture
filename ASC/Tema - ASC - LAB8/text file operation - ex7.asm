@@ -24,12 +24,12 @@ segment data use32 class=data
     
     access_mode db "r", 0
     character resb 1
+    print_format db "The charachter with the max frequency in the file is %c, appearing %d times",0
     
-    character_freq times 26 db 0
     max_frequency db 0
     max_frequency_character db 0
+    character_freq times 26 db 0
     
-    print_format db "%c, %d",0
     
 segment code use32 class=code
     start:
@@ -83,6 +83,7 @@ segment code use32 class=code
         
         ; Closing the file as we do not need it anymore
         cleanup:
+        
             ; fclose(file_descriptor)
             push dword[file_descriptor]
             call [fclose]
@@ -108,9 +109,16 @@ segment code use32 class=code
         
         ; Printing the max frequency character together with it's apperances
         ; printf(format, max_freq_char, max_freq)
-        push dword[max_frequency]
-        push dword[max_frequency_character]
-        push dword[print_format]
+        
+        mov EAX, 0
+        mov EDX, 0
+        mov AL, byte[max_frequency]
+        mov DL, byte[max_frequency_character]
+        add DL, 97 ; ascii code for 'a' => from number in 0..26 to corresponding lowercase letter
+        
+        push dword EAX
+        push dword EDX
+        push dword print_format
         call [printf]
         add esp, 4*3
         

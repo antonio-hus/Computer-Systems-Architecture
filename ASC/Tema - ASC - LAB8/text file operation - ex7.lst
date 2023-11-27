@@ -25,12 +25,20 @@
     24                                      
     25 0000000E 7200                        access_mode db "r", 0
     26 00000010 <res 00000001>              character resb 1
-    27                                      
-    28 00000011 00<rept>                    character_freq times 26 db 0
-    29 0000002B 00                          max_frequency db 0
-    30 0000002C 00                          max_frequency_character db 0
-    31                                      
-    32 0000002D 25632C20256400              print_format db "%c, %d",0
+    27 00000011 546865206368617261-         print_format db "The charachter with the max frequency in the file is %c, appearing %d times",0
+    27 0000001A 636874657220776974-
+    27 00000023 6820746865206D6178-
+    27 0000002C 206672657175656E63-
+    27 00000035 7920696E2074686520-
+    27 0000003E 66696C652069732025-
+    27 00000047 632C20617070656172-
+    27 00000050 696E67202564207469-
+    27 00000059 6D657300           
+    28                                      
+    29 0000005D 00                          max_frequency db 0
+    30 0000005E 00                          max_frequency_character db 0
+    31 0000005F 00<rept>                    character_freq times 26 db 0
+    32                                      
     33                                      
     34                                  segment code use32 class=code
     35                                      start:
@@ -44,7 +52,7 @@
     43                                          
     44                                          ; If file was not opened correctly, terminate the program
     45 00000013 83F800                          cmp EAX, 0
-    46 00000016 0F8482000000                    je final
+    46 00000016 0F848F000000                    je final
     47                                          
     48                                              ; Save file descriptor from EAX to a location memory
     49 0000001C A3[0A000000]                        mov dword[file_descriptor], EAX
@@ -77,44 +85,52 @@
     76 00000043 A0[10000000]                            mov AL, byte[character]
     77 00000048 2C61                                    sub AL, 'a'
     78 0000004A 89C6                                    mov esi, EAX
-    79 0000004C FE86[11000000]                          inc byte[character_freq + esi]
+    79 0000004C FE86[5F000000]                          inc byte[character_freq + esi]
     80                                              
     81                                                  ; Jumping back to read until the end of the file
     82 00000052 EBCD                                jmp reading_file
     83                                          
     84                                          ; Closing the file as we do not need it anymore
     85                                          cleanup:
-    86                                              ; fclose(file_descriptor)
-    87 00000054 FF35[0A000000]                      push dword[file_descriptor]
-    88 0000005A FF15[00000000]                      call [fclose]
-    89 00000060 83C404                              add esp, 4
-    90                                              
-    91                                          ; Pseudocode Equivalent of the code section below
-    92                                          ; for i = 26, 0, -1
-    93                                          ;   if(freq[i] > max_freq)
-    94                                          ;       max_freq = freq[i]
-    95                                          ;       max_freq_char = char(i)
-    96                                          
-    97                                          ; Finding the character with the maximum frequency
-    98 00000063 B91A000000                      mov ECX, 26 ; CL = 26, rest of the register is 0
-    99                                          find_max:
-   100                                          
-   101 00000068 8A81[11000000]                      mov AL, [character_freq + ecx]
-   102 0000006E 3A05[2B000000]                      cmp AL, [max_frequency]
-   103 00000074 7E0B                                jng continue
-   104 00000076 A2[2B000000]                            mov byte[max_frequency], AL
-   105 0000007B 880D[2C000000]                          mov byte[max_frequency_character], CL
-   106                                              continue:
-   107 00000081 E2E5                            loop find_max
-   108                                          
-   109                                          ; Printing the max frequency character together with it's apperances
-   110                                          ; printf(format, max_freq_char, max_freq)
-   111 00000083 FF35[2B000000]                  push dword[max_frequency]
-   112 00000089 FF35[2C000000]                  push dword[max_frequency_character]
-   113 0000008F FF35[2D000000]                  push dword[print_format]
-   114 00000095 FF15[00000000]                  call [printf]
-   115 0000009B 83C40C                          add esp, 4*3
-   116                                          
-   117                                          final:
-   118 0000009E 6A00                            push    dword 0      
-   119 000000A0 FF15[00000000]                  call    [exit]       
+    86                                          
+    87                                              ; fclose(file_descriptor)
+    88 00000054 FF35[0A000000]                      push dword[file_descriptor]
+    89 0000005A FF15[00000000]                      call [fclose]
+    90 00000060 83C404                              add esp, 4
+    91                                              
+    92                                          ; Pseudocode Equivalent of the code section below
+    93                                          ; for i = 26, 0, -1
+    94                                          ;   if(freq[i] > max_freq)
+    95                                          ;       max_freq = freq[i]
+    96                                          ;       max_freq_char = char(i)
+    97                                          
+    98                                          ; Finding the character with the maximum frequency
+    99 00000063 B91A000000                      mov ECX, 26 ; CL = 26, rest of the register is 0
+   100                                          find_max:
+   101                                          
+   102 00000068 8A81[5F000000]                      mov AL, [character_freq + ecx]
+   103 0000006E 3A05[5D000000]                      cmp AL, [max_frequency]
+   104 00000074 7E0B                                jng continue
+   105 00000076 A2[5D000000]                            mov byte[max_frequency], AL
+   106 0000007B 880D[5E000000]                          mov byte[max_frequency_character], CL
+   107                                              continue:
+   108 00000081 E2E5                            loop find_max
+   109                                          
+   110                                          ; Printing the max frequency character together with it's apperances
+   111                                          ; printf(format, max_freq_char, max_freq)
+   112                                          
+   113 00000083 B800000000                      mov EAX, 0
+   114 00000088 BA00000000                      mov EDX, 0
+   115 0000008D A0[5D000000]                    mov AL, byte[max_frequency]
+   116 00000092 8A15[5E000000]                  mov DL, byte[max_frequency_character]
+   117 00000098 80C261                          add DL, 97 ; ascii code for 'a' => from number in 0..26 to corresponding lowercase letter
+   118                                          
+   119 0000009B 50                              push dword EAX
+   120 0000009C 52                              push dword EDX
+   121 0000009D 68[11000000]                    push dword print_format
+   122 000000A2 FF15[00000000]                  call [printf]
+   123 000000A8 83C40C                          add esp, 4*3
+   124                                          
+   125                                          final:
+   126 000000AB 6A00                            push    dword 0      
+   127 000000AD FF15[00000000]                  call    [exit]       
