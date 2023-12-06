@@ -1,0 +1,88 @@
+     1                                  bits 32
+     2                                  global start        
+     3                                  
+     4                                  extern exit, printf
+     5                                  import exit msvcrt.dll
+     6                                  import printf msvcrt.dll
+     7                                  
+     8                                  segment data use32 class=data
+     9                                  
+    10                                      ; initializing our strings
+    11 00000000 6170706C6500                string1 db "apple", 0
+    12                                      len1 equ $-string1
+    13                                      
+    14 00000006 617070656E6400              string2 db "append", 0
+    15                                      len2 equ $-string2
+    16                                      
+    17 0000000D 6170706574697A6572-         string3 db "appetizer", 0
+    17 00000016 00                 
+    18                                      len3 equ $-string3
+    19                                      
+    20                                      ; the length of the result <= the greatest length of the strings 
+    21                                      ; max length of the strings is 100
+    22                                      ; hence we use 100 bytes for our result to be safe
+    23 00000017 00<rept>                    longest_prefix times 100 db 0
+    24 0000007B 00                          lp_len db 0
+    25                                      
+    26                                      ; format for printf
+    27 0000007C 546865206C6F6E6765-         print_format db "The longest prefix is: %s", 0
+    27 00000085 737420707265666978-
+    27 0000008E 2069733A20257300   
+    28                                      
+    29                                  segment code use32 class=code
+    30                                  
+    31                                      ; longest prefix function (common subproblem)
+    32                                      get_longest_prefix:
+    33                                      
+    34                                          ; parse from the start (left to right) until encountering a different character, or '0'
+    35 00000000 FC                              cld
+    36 00000001 8B742408                        mov esi, [esp+8] ; string1
+    37 00000005 8B7C2404                        mov edi, [esp+4] ; string2
+    38                                      
+    39                                          string_parse:
+    40 00000009 8A06                                mov al, [esi]
+    41 0000000B 8A1F                                mov bl, [edi]
+    42                                              
+    43                                              ; stop conditions
+    44 0000000D 3C00                                cmp al, 0
+    45 0000000F 7424                                jz final
+    46 00000011 80FB00                              cmp bl, 0
+    47 00000014 741F                                jz final
+    48 00000016 38D8                                cmp al,bl
+    49 00000018 751B                                jnz final
+    50                                              
+    51                                              ; characters are equal => add in longest_prefix
+    52 0000001A B900000000                          mov ecx, 0
+    53 0000001F 8A0D[7B000000]                      mov cl, [lp_len]
+    54 00000025 8881[17000000]                      mov [longest_prefix + ecx], al 
+    55 0000002B FE05[7B000000]                      inc byte[lp_len]
+    56                                              
+    57                                              ; incrementing
+    58 00000031 46                                  inc esi
+    59 00000032 47                                  inc edi
+    60                                              
+    61 00000033 EBD4                            jmp string_parse
+    62                                          
+    63                                          final:
+    64 00000035 C3                              ret
+    65                                  
+    66                                      
+    67                                      ; main function
+    68                                      start:
+    69                                          
+    70                                          ; get_longest_prefix(s1,s2,s3) = get_longest_prefix(get_longest_prefix(s1,s2),s3)
+    71                                          
+    72                                          ; push the addresses of the strings
+    73 00000036 68[00000000]                    push dword string1
+    74 0000003B 68[06000000]                    push dword string2
+    75 00000040 E8BBFFFFFF                      call get_longest_prefix
+    76 00000045 83C408                          add esp, 4*2
+    77                                          
+    78                                          ; print the longest_prefix
+    79 00000048 68[17000000]                    push dword longest_prefix
+    80 0000004D 68[7C000000]                    push dword print_format
+    81 00000052 FF15[00000000]                  call [printf]
+    82 00000058 83C408                          add esp, 4*2
+    83                                          
+    84 0000005B 6A00                            push    dword 0      
+    85 0000005D FF15[00000000]                  call    [exit]       

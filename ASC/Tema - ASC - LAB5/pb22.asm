@@ -1,5 +1,9 @@
-; LAB 5 - Exercise 7 
-; Two byte strings S1 and S2 of the same length are given. Obtain the string D where each element contains the minimum of the corresponding elements from S1 and S2
+; LAB 5 - Exercise 22
+
+; Read a string of integers s1 (represented on doublewords) in base 10. 
+; Determine and display the string s2 composed by the digits in the hundreds place of each integer in the string s1.
+; Example:    The string s1: 5892, 456, 33, 7, 245
+; The string s2: 8,    4,   0,  0, 2
 
 bits 32 
 global start        
